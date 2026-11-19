@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npu-top"
+version = "0.1.0"
+description = "Tiny zero-dependency terminal dashboard for vLLM metrics and Ascend NPU."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "npu-top contributors"}]
+keywords = ["vllm", "ascend", "npu", "monitoring", "tui", "observability"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: System :: Monitoring",
+]
+dependencies = []
+
+[project.scripts]
+npu-top = "npu_top:main"
+
+[project.urls]
+Homepage = "https://github.com/LIRUILONGS/npu-top"
+Repository = "https://github.com/LIRUILONGS/npu-top"
+Issues = "https://github.com/LIRUILONGS/npu-top/issues"
+
+[tool.setuptools]
+py-modules = ["npu_top"]
