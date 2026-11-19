@@ -40,7 +40,7 @@ vLLM 的 Prometheus 指标接口，以及昇腾的 `npu-smi info`。一个终端
 - 实时终端界面，按 `q` 退出。
 - 一个界面同时监控多个 vLLM 端点。
 - 区间速率，而不只是累计值：输入/生成 token 每秒、请求每秒、本区间抢占数。
-- 可选的输入/生成吞吐折线图，带峰值、平均值和独立量程。
+- 可选的输入/生成吞吐柱状图，带峰值、平均值和独立量程。
 - 基于 histogram 的 TTFT、TPOT、E2E、排队、prefill、decode 和 ITL 平均延迟。
 - 可选趋势曲线，以及可选的 8 卡分组柱状图。
 - `--once` 适合日志，`--json` 适合脚本和看板。
@@ -97,7 +97,7 @@ npu-top --no-npu --once
 参数可以自由组合，顺序无关。
 
 ```bash
-# 中文 + 趋势 + 吞吐折线图 + NPU 柱状图
+# 中文 + 趋势 + 吞吐柱状图 + NPU 柱状图
 npu-top --lang zh --spark --throughput-chart --chart
 
 # 输出一帧，适合日志或截图
@@ -106,14 +106,14 @@ npu-top --once --lang zh --spark --chart --no-color
 # JSON 输出
 npu-top --json --lang zh
 
-# 指定端点 + 并发上限 + 趋势 + 吞吐折线图
+# 指定端点 + 并发上限 + 趋势 + 吞吐柱状图
 npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --throughput-chart --lang zh
 ```
 
 `--once` 和 `--json` 同时使用时输出 JSON；JSON 模式下 `--spark` 和 `--chart`
 不生效。要进入实时 TUI，不要加 `--once` 或 `--json`。
 
-`--throughput-chart` 在 TUI 中展示最近 60 个采样点的输入/生成吞吐折线图。
+`--throughput-chart` 在 TUI 中展示最近 30 个采样点的输入/生成吞吐柱状图。
 它需要连续采样，`--once` 只有两次采样，图形意义有限；长期历史请使用
 Prometheus + Grafana。
 

@@ -47,7 +47,7 @@ serving-metric discipline and adds the Ascend hardware view.
 - Multiple vLLM endpoints in one screen.
 - Per-interval rates (not just cumulative counters): input/output tokens per second,
   requests per second, preemptions in the last interval.
-- Optional input/generation throughput line charts with peak, average, and independent scales.
+- Optional input/generation throughput bar charts with peak, average, and independent scales.
 - Histogram-based TTFT, TPOT, E2E, queue, prefill, decode and ITL averages.
 - Optional sparklines and an optional 8-NPU grouped bar chart.
 - `--once` for logs, `--json` for scripts and dashboards.
@@ -102,7 +102,7 @@ npu-top --no-npu --once
 Options can be freely combined; order does not matter.
 
 ```bash
-# Chinese UI + sparklines + throughput lines + grouped chart
+# Chinese UI + sparklines + throughput bars + grouped chart
 npu-top --lang zh --spark --throughput-chart --chart
 
 # One frame for logs or screenshots
@@ -111,7 +111,7 @@ npu-top --once --lang zh --spark --chart --no-color
 # JSON output
 npu-top --json --lang zh
 
-# Custom endpoint + concurrency limit + sparklines + throughput lines
+# Custom endpoint + concurrency limit + sparklines + throughput bars
 npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --throughput-chart --lang zh
 ```
 
@@ -119,8 +119,8 @@ npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --throughput-cha
 `--spark` and `--chart` are ignored. Do not pass `--once` or `--json` when you want
 the live TUI.
 
-`--throughput-chart` shows the last 60 samples as input/generation throughput
-line charts in the TUI. It needs continuous sampling; `--once` only collects two
+`--throughput-chart` shows the last 30 samples as input/generation throughput
+bar charts in the TUI. It needs continuous sampling; `--once` only collects two
 samples, so the chart is of limited use. For long-term history, use Prometheus
 plus Grafana.
 

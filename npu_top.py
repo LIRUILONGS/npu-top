@@ -66,8 +66,8 @@ STRINGS = {
         "out": "out",
         "trend": "trend",
         "running": "running",
-        "throughput_chart_title": "Throughput line chart",
-        "throughput_chart_scale": "last 60 samples · independent scales · tok/s",
+        "throughput_chart_title": "Throughput bar chart",
+        "throughput_chart_scale": "last 30 samples · independent scales · tok/s",
         "peak": "peak",
         "avg": "avg",
         "chart_oldest": "oldest",
@@ -109,8 +109,8 @@ STRINGS = {
         "out": "出",
         "trend": "趋势",
         "running": "运行",
-        "throughput_chart_title": "吞吐折线图",
-        "throughput_chart_scale": "最近 60 个采样点 · 独立量程 · tok/s",
+        "throughput_chart_title": "吞吐柱状图",
+        "throughput_chart_scale": "最近 30 个采样点 · 独立量程 · tok/s",
         "peak": "峰值",
         "avg": "平均",
         "chart_oldest": "最早",
@@ -683,34 +683,34 @@ def truncate(text: str, width: int) -> str:
     return text if len(text) <= width else text[: max(0, width - 1)] + "…"
 
 
-def _line_plot(values: Sequence[float], width: int, height: int) -> List[List[str]]:
+def _bar_grid(
+    values: Sequence[float],
+    width: int,
+    height: int,
+    bar_width: int,
+    gap: int,
+) -> List[List[str]]:
     top = max(values) if values else 0.0
     top = top or 1.0
-    recent = list(values)[-width:]
-    offset = width - len(recent)
+    step = bar_width + gap
+    max_bars = max(1, (width + gap) // step)
+    recent = list(values)[-max_bars:]
+    offset = width - (len(recent) * step - gap)
     grid = [[" "] * width for _ in range(height)]
 
-    def y_index(value: float) -> int:
+    def filled_rows(value: float) -> int:
         ratio = max(0.0, min(1.0, value / top))
-        return height - 1 - int(round(ratio * (height - 1)))
+        filled = int(round(ratio * height))
+        if value > 0 and filled == 0:
+            filled = 1
+        return filled
 
-    previous: Optional[Tuple[int, int]] = None
     for index, value in enumerate(recent):
-        x = offset + index
-        y = y_index(value)
-        if previous is None:
-            grid[y][x] = "●"
-        else:
-            _px, py = previous
-            if y == py:
-                grid[y][x] = "─"
-            elif abs(y - py) == 1:
-                grid[y][x] = "╱" if y < py else "╲"
-            else:
-                step = -1 if y < py else 1
-                for row in range(py + step, y + step, step):
-                    grid[row][x] = "│"
-        previous = (x, y)
+        x = offset + index * step
+        filled = filled_rows(value)
+        for row in range(height - filled, height):
+            for column in range(x, x + bar_width):
+                grid[row][column] = "█"
     return grid
 
 
@@ -722,7 +722,10 @@ def render_throughput_chart(
 ) -> List[str]:
     if not history:
         return []
-    plot_width = max(12, min(60, width - 14))
+    bar_width = 3 if width >= 128 else 2
+    gap = 1
+    max_bars = max(8, min(30, (width - 14 + gap) // (bar_width + gap)))
+    plot_width = max_bars * (bar_width + gap) - gap
     height = 5
     lines = [
         f"{theme.bold(t('throughput_chart_title'))}  "
@@ -738,7 +741,7 @@ def render_throughput_chart(
             f"{theme.dim(t('peak'))} {fmt_rate(top)}  "
             f"{theme.dim(t('avg'))} {fmt_rate(avg)}"
         ]
-        grid = _line_plot(values, plot_width, height)
+        grid = _bar_grid(values, plot_width, height, bar_width, gap)
         for row in range(height):
             if row == 0:
                 prefix = f"{fmt_rate(top):>8} ┤"
@@ -752,8 +755,8 @@ def render_throughput_chart(
         result.append(theme.dim(" " * 8 + " └" + "─" * plot_width))
         oldest = t("chart_oldest")
         now = t("chart_now")
-        gap = max(1, plot_width - len(oldest) - len(now))
-        result.append(theme.dim(" " * 10 + oldest + " " * gap + now))
+        label_gap = max(1, plot_width - len(oldest) - len(now))
+        result.append(theme.dim(" " * 10 + oldest + " " * label_gap + now))
         return result
 
     lines.extend(panel(t("prompt"), [point[0] for point in history], CYAN))
@@ -1062,7 +1065,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--throughput-chart",
         action="store_true",
-        help="show input/generation throughput line charts",
+        help="show input/generation throughput bar charts",
     )
     parser.add_argument("--chart", action="store_true", help="show the 8-NPU grouped bar chart")
     parser.add_argument("--no-npu", action="store_true", help="skip npu-smi")

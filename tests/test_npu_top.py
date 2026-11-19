@@ -271,11 +271,11 @@ class RenderTests(unittest.TestCase):
             100,
         )
         text = "\n".join(lines)
-        self.assertIn("Throughput line chart", text)
+        self.assertIn("Throughput bar chart", text)
         self.assertIn("prompt", text)
         self.assertIn("generation", text)
         self.assertIn("peak", text)
-        self.assertIn("●", text)
+        self.assertIn("█", text)
         self.assertIn("oldest", text)
         self.assertIn("now", text)
 
