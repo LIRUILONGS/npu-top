@@ -66,6 +66,12 @@ STRINGS = {
         "out": "out",
         "trend": "trend",
         "running": "running",
+        "throughput_chart_title": "Throughput line chart",
+        "throughput_chart_scale": "last 60 samples · independent scales · tok/s",
+        "peak": "peak",
+        "avg": "avg",
+        "chart_oldest": "oldest",
+        "chart_now": "now",
         "npu_title": "NPU AICore / HBM / Temp / Power",
         "aicore": "AICore",
         "hbm": "HBM",
@@ -103,6 +109,12 @@ STRINGS = {
         "out": "出",
         "trend": "趋势",
         "running": "运行",
+        "throughput_chart_title": "吞吐折线图",
+        "throughput_chart_scale": "最近 60 个采样点 · 独立量程 · tok/s",
+        "peak": "峰值",
+        "avg": "平均",
+        "chart_oldest": "最早",
+        "chart_now": "现在",
         "npu_title": "NPU 算力 / 显存 / 温度 / 功耗",
         "aicore": "算力",
         "hbm": "显存",
@@ -198,6 +210,7 @@ class ServiceSnapshot:
     prompt_total: float = 0.0
     gen_total: float = 0.0
     history: List[Tuple[int, float]] = field(default_factory=list)
+    throughput_history: List[Tuple[float, float]] = field(default_factory=list)
 
 
 @dataclass
@@ -458,6 +471,9 @@ class Monitor:
         self.history: Dict[str, Deque[Tuple[int, float]]] = {
             endpoint.name: collections.deque(maxlen=60) for endpoint in self.endpoints
         }
+        self.throughput_history: Dict[str, Deque[Tuple[float, float]]] = {
+            endpoint.name: collections.deque(maxlen=60) for endpoint in self.endpoints
+        }
         self.npu_history: Dict[int, Deque[Tuple[int, float]]] = collections.defaultdict(
             lambda: collections.deque(maxlen=60)
         )
@@ -499,6 +515,9 @@ class Monitor:
         history = self.history[endpoint.name]
         history.append((snapshot.running, snapshot.gen_tps))
         snapshot.history = list(history)
+        throughput = self.throughput_history[endpoint.name]
+        throughput.append((snapshot.prompt_tps, snapshot.gen_tps))
+        snapshot.throughput_history = list(throughput)
         return snapshot
 
 
@@ -640,6 +659,18 @@ def fmt_count(value: float) -> str:
     return f"{value:.0f}"
 
 
+def fmt_rate(value: float) -> str:
+    if value >= 1_000_000:
+        return f"{value / 1_000_000:.1f}M"
+    if value >= 10_000:
+        return f"{value / 1_000:.1f}K"
+    if value >= 1_000:
+        return f"{value:,.0f}"
+    if value >= 10:
+        return f"{value:.1f}"
+    return f"{value:.2f}"
+
+
 def fmt_sec(value: float) -> str:
     if value <= 0:
         return "-"
@@ -650,6 +681,84 @@ def fmt_sec(value: float) -> str:
 
 def truncate(text: str, width: int) -> str:
     return text if len(text) <= width else text[: max(0, width - 1)] + "…"
+
+
+def _line_plot(values: Sequence[float], width: int, height: int) -> List[List[str]]:
+    top = max(values) if values else 0.0
+    top = top or 1.0
+    recent = list(values)[-width:]
+    offset = width - len(recent)
+    grid = [[" "] * width for _ in range(height)]
+
+    def y_index(value: float) -> int:
+        ratio = max(0.0, min(1.0, value / top))
+        return height - 1 - int(round(ratio * (height - 1)))
+
+    previous: Optional[Tuple[int, int]] = None
+    for index, value in enumerate(recent):
+        x = offset + index
+        y = y_index(value)
+        if previous is None:
+            grid[y][x] = "●"
+        else:
+            _px, py = previous
+            if y == py:
+                grid[y][x] = "─"
+            elif abs(y - py) == 1:
+                grid[y][x] = "╱" if y < py else "╲"
+            else:
+                step = -1 if y < py else 1
+                for row in range(py + step, y + step, step):
+                    grid[row][x] = "│"
+        previous = (x, y)
+    return grid
+
+
+def render_throughput_chart(
+    history: Sequence[Tuple[float, float]],
+    t: Translator,
+    theme: Theme,
+    width: int,
+) -> List[str]:
+    if not history:
+        return []
+    plot_width = max(12, min(60, width - 14))
+    height = 5
+    lines = [
+        f"{theme.bold(t('throughput_chart_title'))}  "
+        f"{theme.dim(t('throughput_chart_scale'))}"
+    ]
+
+    def panel(label: str, values: Sequence[float], color: str) -> List[str]:
+        top = max(values) if values else 0.0
+        top = top or 1.0
+        avg = sum(values) / len(values) if values else 0.0
+        result = [
+            f"{theme.bold(label)}  tok/s  "
+            f"{theme.dim(t('peak'))} {fmt_rate(top)}  "
+            f"{theme.dim(t('avg'))} {fmt_rate(avg)}"
+        ]
+        grid = _line_plot(values, plot_width, height)
+        for row in range(height):
+            if row == 0:
+                prefix = f"{fmt_rate(top):>8} ┤"
+            elif row == height - 1:
+                prefix = f"{0:>8} ┤"
+            elif row == height // 2:
+                prefix = f"{fmt_rate(top / 2):>8} │"
+            else:
+                prefix = " " * 8 + " │"
+            result.append(theme.dim(prefix) + theme.paint("".join(grid[row]), color))
+        result.append(theme.dim(" " * 8 + " └" + "─" * plot_width))
+        oldest = t("chart_oldest")
+        now = t("chart_now")
+        gap = max(1, plot_width - len(oldest) - len(now))
+        result.append(theme.dim(" " * 10 + oldest + " " * gap + now))
+        return result
+
+    lines.extend(panel(t("prompt"), [point[0] for point in history], CYAN))
+    lines.extend(panel(t("generation"), [point[1] for point in history], GREEN))
+    return lines
 
 
 def render_service(
@@ -928,7 +1037,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "examples:\n"
             "  npu-top\n"
-            "  npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark\n"
+            "  npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --throughput-chart\n"
             "  npu-top -e a=http://127.0.0.1:8000 -e b=http://127.0.0.1:8001\n"
             "  npu-top --once --json\n"
             "  npu-top --no-npu --once\n"
@@ -950,6 +1059,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json", action="store_true", help="print one JSON snapshot and exit")
     parser.add_argument("--no-warmup", action="store_true", help="skip the second sample used for rates")
     parser.add_argument("--spark", action="store_true", help="show sparklines")
+    parser.add_argument(
+        "--throughput-chart",
+        action="store_true",
+        help="show input/generation throughput line charts",
+    )
     parser.add_argument("--chart", action="store_true", help="show the 8-NPU grouped bar chart")
     parser.add_argument("--no-npu", action="store_true", help="skip npu-smi")
     parser.add_argument("--npu-smi", metavar="PATH", help="path to npu-smi (default: search PATH)")
@@ -1059,6 +1173,11 @@ def render_frame(
     ]
     for service in services:
         lines.extend(render_service(service, t, theme, args.spark, width))
+        if args.throughput_chart:
+            chart = render_throughput_chart(service.throughput_history, t, theme, width)
+            if chart:
+                lines.append("")
+                lines.extend(chart)
         lines.append("")
     lines.extend(render_npus(npus, npu_error, monitor.npu_history, t, theme, args.spark))
     if args.chart:

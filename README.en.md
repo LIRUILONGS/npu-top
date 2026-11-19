@@ -47,6 +47,7 @@ serving-metric discipline and adds the Ascend hardware view.
 - Multiple vLLM endpoints in one screen.
 - Per-interval rates (not just cumulative counters): input/output tokens per second,
   requests per second, preemptions in the last interval.
+- Optional input/generation throughput line charts with peak, average, and independent scales.
 - Histogram-based TTFT, TPOT, E2E, queue, prefill, decode and ITL averages.
 - Optional sparklines and an optional 8-NPU grouped bar chart.
 - `--once` for logs, `--json` for scripts and dashboards.
@@ -78,7 +79,7 @@ python3 npu_top.py --help
 npu-top
 
 # A DeepSeek endpoint on port 8900, with the vLLM max-num-seqs value
-npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark
+npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --throughput-chart
 
 # One frame for logs (takes a second sample so rates are meaningful)
 npu-top --once
@@ -101,8 +102,8 @@ npu-top --no-npu --once
 Options can be freely combined; order does not matter.
 
 ```bash
-# Chinese UI + sparklines + grouped chart
-npu-top --lang zh --spark --chart
+# Chinese UI + sparklines + throughput lines + grouped chart
+npu-top --lang zh --spark --throughput-chart --chart
 
 # One frame for logs or screenshots
 npu-top --once --lang zh --spark --chart --no-color
@@ -110,13 +111,18 @@ npu-top --once --lang zh --spark --chart --no-color
 # JSON output
 npu-top --json --lang zh
 
-# Custom endpoint + concurrency limit + sparklines
-npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --lang zh
+# Custom endpoint + concurrency limit + sparklines + throughput lines
+npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --throughput-chart --lang zh
 ```
 
 `--once` plus `--json` produces JSON (JSON takes precedence). In JSON mode
 `--spark` and `--chart` are ignored. Do not pass `--once` or `--json` when you want
 the live TUI.
+
+`--throughput-chart` shows the last 60 samples as input/generation throughput
+line charts in the TUI. It needs continuous sampling; `--once` only collects two
+samples, so the chart is of limited use. For long-term history, use Prometheus
+plus Grafana.
 
 Keys pressed in the TUI: `q` quits; `Ctrl-C` also stops.
 

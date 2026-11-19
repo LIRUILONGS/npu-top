@@ -262,6 +262,23 @@ class RenderTests(unittest.TestCase):
         )
         self.assertIn("offline: refused", "\n".join(lines))
 
+    def test_render_throughput_chart(self):
+        history = [(100.0 + index * 25, 20.0 + index * 3) for index in range(20)]
+        lines = npu_top.render_throughput_chart(
+            history,
+            npu_top.Translator("en"),
+            npu_top.Theme(enabled=False),
+            100,
+        )
+        text = "\n".join(lines)
+        self.assertIn("Throughput line chart", text)
+        self.assertIn("prompt", text)
+        self.assertIn("generation", text)
+        self.assertIn("peak", text)
+        self.assertIn("●", text)
+        self.assertIn("oldest", text)
+        self.assertIn("now", text)
+
 
 if __name__ == "__main__":
     unittest.main()
