@@ -2,152 +2,149 @@
 
 [![ci](https://github.com/LIRUILONGS/npu-top/actions/workflows/ci.yml/badge.svg)](https://github.com/LIRUILONGS/npu-top/actions/workflows/ci.yml)
 
-Tiny, zero-dependency terminal dashboard for **vLLM** and **Ascend NPU**.
+简体中文 | [English](README.en.md)
 
-`npu-top` is one Python file and has no third-party runtime packages. It reads two
-read-only sources: a vLLM Prometheus endpoint and `npu-smi info`. The result is a
-single terminal view that shows both serving quality and NPU health.
+单文件、零第三方依赖的 **vLLM + 昇腾 NPU** 终端监控工具。
 
-> Status: alpha. The CLI and JSON schema are usable, but may change before 1.0.
+`npu-top` 只有一个 Python 文件，不依赖任何第三方运行时包。它只读地读取两个来源：
+vLLM 的 Prometheus 指标接口，以及昇腾的 `npu-smi info`。一个终端界面同时展示
+推理服务质量与 NPU 硬件状态。
 
-## Why another dashboard?
+> 状态：alpha。CLI 和 JSON 字段已经可用，但 1.0 之前可能调整。
 
-The existing vLLM dashboards are good at serving metrics, but their hardware views
-are usually built around NVIDIA (NVML/DCGM). Ascend servers expose a different
-interface, so those views are empty or unsupported. This project keeps the useful
-parts of those tools and makes Ascend a first-class citizen:
+## 为什么还需要一个监控工具
 
-- vLLM throughput, KV cache, queue time, TTFT, TPOT, E2E latency, preemptions and
-  speculative-decoding acceptance in one place.
-- `npu-smi` AICore, HBM, temperature and power for every card, plus an aggregate row.
-- TUI, one-shot text, and JSON output in the same command.
-- Zero runtime dependencies; no telemetry and no files written.
-- The built wheel is about 17 KB; the source is a single `npu_top.py`.
+现有的 vLLM 面板很擅长展示服务指标，但硬件视图通常围绕 NVIDIA 的 NVML/DCGM
+构建。昇腾服务器使用的是另一套接口，这些面板要么显示为空，要么不支持。`npu-top`
+保留这些工具好用的部分，同时把昇腾作为一等公民：
 
-Related projects that inspired the metric layout:
+- 一屏看全 vLLM 的吞吐、KV Cache、排队时间、TTFT、TPOT、E2E、抢占和投机解码接受率。
+- 通过 `npu-smi` 读取每张卡的 AICore、HBM、温度、功耗，并给出汇总行。
+- 同一个命令同时支持实时 TUI、单次文本输出和 JSON 输出。
+- 零运行时依赖，不上报遥测，不写状态文件。
 
-- [`Gamattention/llm-top`](https://github.com/Gamattention/llm-top): a small vLLM TUI.
-- [`InfraWhisperer/llmtop`](https://github.com/InfraWhisperer/llmtop): multi-backend
-  monitoring with a single binary.
-- [`tomaskir/vllm-monitor`](https://github.com/tomaskir/vllm-monitor): detailed vLLM
-  queue, preemption and speculative-decoding metrics.
+相关项目（指标布局参考了它们）：
 
-Those tools are excellent choices on NVIDIA hardware. `npu-top` keeps the same
-serving-metric discipline and adds the Ascend hardware view.
+- [`Gamattention/llm-top`](https://github.com/Gamattention/llm-top)：精简的 vLLM TUI。
+- [`InfraWhisperer/llmtop`](https://github.com/InfraWhisperer/llmtop)：多后端、单二进制监控。
+- [`tomaskir/vllm-monitor`](https://github.com/tomaskir/vllm-monitor)：完整的 vLLM 排队、抢占和投机解码指标。
 
-## Features
+这些工具在 NVIDIA 环境中很成熟。`npu-top` 保留同样的服务指标设计，并补上昇腾硬件视图。
 
-- Live terminal UI with `q` to quit.
-- Multiple vLLM endpoints in one screen.
-- Per-interval rates (not just cumulative counters): input/output tokens per second,
-  requests per second, preemptions in the last interval.
-- Histogram-based TTFT, TPOT, E2E, queue, prefill, decode and ITL averages.
-- Optional sparklines and an optional 8-NPU grouped bar chart.
-- `--once` for logs, `--json` for scripts and dashboards.
-- English/Chinese UI, automatic color detection, `NO_COLOR` support.
-- API keys from environment variables; keys are never printed.
+## 功能
 
-## Install
+- 实时终端界面，按 `q` 退出。
+- 一个界面同时监控多个 vLLM 端点。
+- 区间速率，而不只是累计值：输入/生成 token 每秒、请求每秒、本区间抢占数。
+- 基于 histogram 的 TTFT、TPOT、E2E、排队、prefill、decode 和 ITL 平均延迟。
+- 可选趋势曲线，以及可选的 8 卡分组柱状图。
+- `--once` 适合日志，`--json` 适合脚本和看板。
+- 中英文界面、自动颜色检测、支持 `NO_COLOR`。
+- API Key 从环境变量读取，不会打印到终端。
+- wheel 约 18 KB，源码就是一个 `npu_top.py`。
 
-Requirements: Python 3.9+, Linux for NPU monitoring, and `npu-smi` in `PATH`.
+## 安装
+
+要求：Python 3.9+；采集 NPU 需要 Linux，并且 `npu-smi` 在 `PATH` 中。
 
 ```bash
 git clone https://github.com/LIRUILONGS/npu-top.git
 cd npu-top
 python3 -m pip install --user .
-# or
+
+# 或者
 pipx install .
 ```
 
-You can also run it directly without installing:
+也可以不安装，直接运行：
 
 ```bash
 python3 npu_top.py --help
 ```
 
-## Quick start
+## 快速开始
 
 ```bash
-# Default: http://127.0.0.1:8000/metrics + npu-smi info
+# 默认：http://127.0.0.1:8000/metrics + npu-smi info
 npu-top
 
-# A DeepSeek endpoint on port 8900, with the vLLM max-num-seqs value
+# 监控 8900 端口的 DeepSeek，并显示 vLLM 的 max-num-seqs
 npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark
 
-# One frame for logs (takes a second sample so rates are meaningful)
+# 输出一帧到日志（会采两次样，吞吐和抢占数才有意义）
 npu-top --once
 
-# Instant snapshot without the second sample
+# 不采第二次样，立即输出
 npu-top --once --no-warmup
 
-# JSON for automation
+# JSON 输出
 npu-top --json
 
-# Optional grouped NPU bar chart
+# 可选的 NPU 分组柱状图
 npu-top --chart --spark
 
-# Skip NPU collection on a non-Ascend machine
+# 非昇腾机器上关闭 NPU 采集
 npu-top --no-npu --once
 ```
 
-### Common combinations
+### 常用组合
 
-Options can be freely combined; order does not matter.
+参数可以自由组合，顺序无关。
 
 ```bash
-# Chinese UI + sparklines + grouped chart
+# 中文 + 趋势 + 柱状图
 npu-top --lang zh --spark --chart
 
-# One frame for logs or screenshots
+# 输出一帧，适合日志或截图
 npu-top --once --lang zh --spark --chart --no-color
 
-# JSON output
+# JSON 输出
 npu-top --json --lang zh
 
-# Custom endpoint + concurrency limit + sparklines
+# 指定端点 + 并发上限 + 趋势
 npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --lang zh
 ```
 
-`--once` plus `--json` produces JSON (JSON takes precedence). In JSON mode
-`--spark` and `--chart` are ignored. Do not pass `--once` or `--json` when you want
-the live TUI.
+`--once` 和 `--json` 同时使用时输出 JSON；JSON 模式下 `--spark` 和 `--chart`
+不生效。要进入实时 TUI，不要加 `--once` 或 `--json`。
 
-Keys pressed in the TUI: `q` quits; `Ctrl-C` also stops.
+TUI 中按 `q` 退出，`Ctrl-C` 也可以停止。
 
-Example output (values are illustrative):
+## 示例输出
+
+以下数值仅作示例：
 
 ```text
-npu-top 0.1.0  vLLM + Ascend NPU  2026-11-19 10:44:25
+npu-top 0.1.0  vLLM + 昇腾 NPU  2026-11-19 10:44:25
 ────────────────────────────────────────────────────────
 deepseek  DeepSeek-V4-Flash  http://127.0.0.1:8900/metrics
-  Concurrency  ████░░░░░░░░░░░░ 7/32   waiting 0   KV cache █░░░░░░░░░░░   7.2%
-  Throughput  prompt      0.0 tok/s   generation    191.7 tok/s   requests  0.00/s
-  Latency  TTFT   2.04s  TPOT    39ms  E2E  68.44s  queue     0ms
-  Spec decode accept  95.7%   preempt 0   success 6.5K   total in 138.62M / out 4.53M
+  并发  ████░░░░░░░░░░░░ 7/32   排队 0   KV缓存 █░░░░░░░░░░░   7.2%
+  吞吐  输入      0.0 tok/s   生成    191.7 tok/s   请求  0.00/s
+  延迟  TTFT   2.04s  TPOT    39ms  E2E  68.44s  队列     0ms
+  投机解码 接受  95.7%   抢占 0   成功 6.5K   累计 入 138.62M / 出 4.53M
 
 NPU 算力 / 显存 / 温度 / 功耗
-  NPU0  910B2  OK     AICore ███░░░░░░░  32%  HBM ███████████░ 93.6% ( 59.9/ 64.0G)   42C 180.0W
-  total  avg AICore  32%   HBM  93.6% (479.3/512.0G)   max temp 42C   total power 1440W
+  NPU0  910B2  OK     算力 ███░░░░░░░  32%  显存 ███████████░ 93.6% ( 59.9/ 64.0G)  42C 180.0W
+  累计  平均算力  32%   显存  93.6% (479.3/512.0G)   最高温度 42C   总功耗 1440W
 ```
 
-## API keys
+## API Key
 
-For endpoints passed on the command line, use `NPU_TOP_API_KEY`:
+命令行传入的端点使用 `NPU_TOP_API_KEY`：
 
 ```bash
 export NPU_TOP_API_KEY='...'
 npu-top -e deepseek=http://127.0.0.1:8900
 ```
 
-In the config file, each endpoint can name its own environment variable with
-`api_key_env`; this avoids putting secrets in JSON. `--api-key` exists for quick
-tests, but it can be visible in the process list, so prefer the environment variable.
+配置文件中的每个端点可以用 `api_key_env` 指定自己的环境变量，避免把密钥写进 JSON。
+`--api-key` 只用于临时测试，但它可能出现在进程列表中，建议优先使用环境变量。
 
-## Configuration
+## 配置文件
 
-`npu-top` auto-loads `~/.config/npu-top/config.json` (or
-`$XDG_CONFIG_HOME/npu-top/config.json`) if it exists. Pass `--config PATH` to use a
-different file. Command-line options override config values.
+如果存在 `~/.config/npu-top/config.json`（或
+`$XDG_CONFIG_HOME/npu-top/config.json`），`npu-top` 会自动读取。也可以用
+`--config PATH` 指定其他文件。命令行参数优先于配置。
 
 ```json
 {
@@ -169,23 +166,23 @@ different file. Command-line options override config values.
 }
 ```
 
-Notes:
+说明：
 
-- `url` may be a base URL (`http://host:8000`) or a full metrics URL.
-- `--endpoint` replaces the `endpoints` list from the config; it does not append.
-- `max_seqs` is only used for the concurrency bar. It does not change vLLM.
-- `npu` can be set to `false` to disable hardware collection.
-- `npu_smi` can point to a non-standard `npu-smi` binary.
+- `url` 可以是基础地址（`http://host:8000`），也可以是完整的 metrics 地址。
+- `--endpoint` 会替换配置中的 `endpoints` 列表，不会追加。
+- `max_seqs` 只用于并发进度条，不会修改 vLLM。
+- `npu` 设为 `false` 可以关闭硬件采集。
+- `npu_smi` 可以指向非标准路径的 `npu-smi`。
 
-An example is in [`examples/npu-top.json`](examples/npu-top.json).
+示例文件见 [`examples/npu-top.json`](examples/npu-top.json)。
 
-## JSON output
+## JSON 输出
 
 ```bash
 npu-top --json | jq
 ```
 
-The schema is intentionally flat and stable enough for simple scripts:
+字段保持扁平，方便脚本直接消费：
 
 ```json
 {
@@ -225,89 +222,39 @@ The schema is intentionally flat and stable enough for simple scripts:
 }
 ```
 
-`kv_cache_usage` is a ratio from 0 to 1. Throughput fields are per second; on a
-single `--json` run the default warm-up takes two samples. Use `--no-warmup` if you
-only need gauges and totals.
+`kv_cache_usage` 是 0 到 1 的比例。吞吐字段是每秒值；单次 `--json` 默认会采两次样，
+只需要瞬时 gauges 和累计值时可以加 `--no-warmup`。
 
-## NPU support
+## 昇腾 NPU 支持
 
-`npu-top` parses the tabular output of `npu-smi info`. The parser is written for the
-format used by Ascend 910B2 servers and tolerates missing power/temperature fields.
-If your `npu-smi` output uses a different table layout, open an issue with the
-output (redact serial numbers and hostnames) or send a pull request with a fixture.
+`npu-top` 解析 `npu-smi info` 的表格输出，目前按昇腾 910B2 服务器的格式编写，
+并兼容功耗/温度缺失的情况。如果你的 `npu-smi` 输出格式不同，欢迎带脱敏后的
+fixture 提 issue 或 PR。
 
-The tool does not need root for normal `npu-smi info` collection. If your system
-requires elevated privileges, grant read access to the relevant device files rather
-than running the dashboard as root.
+正常情况下读取 `npu-smi info` 不需要 root。如果系统要求提权，建议只给相关设备
+文件增加读权限，不要用 root 长期运行监控面板。
 
-## Scope
+## 范围
 
-This project is deliberately small. It does **not** include:
+这个项目刻意保持很小，不包含：
 
-- NVIDIA NVML/DCGM collection (use an NVIDIA-native dashboard there).
-- Multi-node aggregation or Kubernetes service discovery.
-- A built-in Prometheus server, alerting, or long-term storage.
-- Write operations against vLLM or NPU devices.
+- NVIDIA NVML/DCGM 采集（NVIDIA 环境请使用对应的原生面板）。
+- 多节点聚合或 Kubernetes 服务发现。
+- 内置 Prometheus 服务、告警或长期存储。
+- 对 vLLM 或 NPU 设备的写操作。
 
-Those are good separate projects. The goal here is one small, dependable view that
-works on an Ascend box.
+这些适合做成独立项目。这里的目标是：在昇腾机器上提供一个足够小、足够可靠的统一视图。
 
-## Development
+## 开发
 
 ```bash
 python3 -m py_compile npu_top.py
 python3 -m unittest discover -s tests -v
 ```
 
-The test suite covers Prometheus parsing, interval rates, `npu-smi` parsing, config
-merging, HTTP fetching and JSON serialization. It uses only the standard library.
+测试覆盖 Prometheus 解析、区间速率、`npu-smi` 解析、配置合并、HTTP 拉取和 JSON
+序列化，全部使用标准库。
 
-## 中文快速开始
+## 许可证
 
-`npu-top` 是一个单文件、零第三方依赖的终端监控工具，同时读取 vLLM 的
-`/metrics` 和昇腾的 `npu-smi info`。
-
-```bash
-git clone https://github.com/LIRUILONGS/npu-top.git
-cd npu-top
-python3 -m pip install --user .
-
-# 默认监控 127.0.0.1:8000
-npu-top
-
-# 监控 8900 端口的 DeepSeek，并显示并发上限
-npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark
-
-# 输出一次文本 / JSON
-npu-top --once
-npu-top --json
-```
-
-### 常用组合
-
-参数可以自由组合，顺序无关。
-
-```bash
-# 中文 + 趋势 + 柱状图
-npu-top --lang zh --spark --chart
-
-# 输出一帧，适合日志或截图
-npu-top --once --lang zh --spark --chart --no-color
-
-# JSON 输出
-npu-top --json --lang zh
-
-# 指定端点 + 并发上限 + 趋势
-npu-top -e deepseek=http://127.0.0.1:8900 --max-seqs 32 --spark --lang zh
-```
-
-`--once` 和 `--json` 同时使用时输出 JSON；JSON 模式下 `--spark` 和 `--chart`
-不生效。要进入实时 TUI，不要加 `--once` 或 `--json`。
-
-配置文件默认读取 `~/.config/npu-top/config.json`，示例见
-[`examples/npu-top.json`](examples/npu-top.json)。API Key 建议放在环境变量中，
-不要写进配置文件或命令行历史。
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+MIT，见 [LICENSE](LICENSE)。
