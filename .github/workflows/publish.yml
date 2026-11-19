@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/npu-top
+      url: https://pypi.org/p/vllm-npu-top
     permissions:
       id-token: write
       contents: read

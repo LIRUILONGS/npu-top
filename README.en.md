@@ -59,6 +59,10 @@ serving-metric discipline and adds the Ascend hardware view.
 Requirements: Python 3.9+, Linux for NPU monitoring, and `npu-smi` in `PATH`.
 
 ```bash
+# From PyPI (the installed command is still npu-top)
+pip install vllm-npu-top
+
+# Or install from source
 git clone https://github.com/LIRUILONGS/npu-top.git
 cd npu-top
 python3 -m pip install --user .

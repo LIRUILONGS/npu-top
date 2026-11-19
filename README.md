@@ -53,6 +53,10 @@ vLLM 的 Prometheus 指标接口，以及昇腾的 `npu-smi info`。一个终端
 要求：Python 3.9+；采集 NPU 需要 Linux，并且 `npu-smi` 在 `PATH` 中。
 
 ```bash
+# 从 PyPI 安装（安装后的命令仍然是 npu-top）
+pip install vllm-npu-top
+
+# 或者从源码安装
 git clone https://github.com/LIRUILONGS/npu-top.git
 cd npu-top
 python3 -m pip install --user .

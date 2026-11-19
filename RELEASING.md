@@ -1,6 +1,6 @@
 # 发布到 PyPI
 
-包名：`npu-top`。首次发布版本：`0.1.0`。
+PyPI 包名：`vllm-npu-top`。安装后的命令仍然是 `npu-top`。首次发布版本：`0.1.0`。
 
 ## 一次性配置
 
@@ -10,7 +10,7 @@
 
    | 字段 | 值 |
    |---|---|
-   | PyPI Project Name | `npu-top` |
+   | PyPI Project Name | `vllm-npu-top` |
    | Owner | `LIRUILONGS` |
    | Repository name | `npu-top` |
    | Workflow name | `publish.yml` |
@@ -50,9 +50,9 @@ Trusted Publishing 使用 OIDC，不需要把 PyPI API Token 写进仓库或 Sec
 ## 发布后验证
 
 ```bash
-python -m pip index versions npu-top
-python -m pip install --no-cache-dir npu-top==X.Y.Z
+python -m pip index versions vllm-npu-top
+python -m pip install --no-cache-dir vllm-npu-top==X.Y.Z
 npu-top --version
 ```
 
-PyPI 页面：<https://pypi.org/project/npu-top/>
+PyPI 页面：<https://pypi.org/project/vllm-npu-top/>
