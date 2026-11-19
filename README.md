@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/LIRUILONGS/npu-top/actions/workflows/ci.yml/badge.svg)](https://github.com/LIRUILONGS/npu-top/actions/workflows/ci.yml)
 
-简体中文 | [English](README.en.md)
+简体中文 | [English](https://github.com/LIRUILONGS/npu-top/blob/main/README.en.md)
 
 单文件、零第三方依赖的 **vLLM + 昇腾 NPU** 终端监控工具。
 
@@ -10,7 +10,7 @@
 vLLM 的 Prometheus 指标接口，以及昇腾的 `npu-smi info`。一个终端界面同时展示
 推理服务质量与 NPU 硬件状态。
 
-![npu-top 终端界面](docs/screenshots/overview.png)
+![npu-top 终端界面](https://raw.githubusercontent.com/LIRUILONGS/npu-top/main/docs/screenshots/overview.png)
 
 *实际运行采样：DeepSeek V4 Flash + 8 × 昇腾 910B2。*
 
@@ -123,11 +123,11 @@ TUI 中按 `q` 退出，`Ctrl-C` 也可以停止。
 
 `--chart` 会在服务指标下方增加 8 卡分组柱状图：
 
-![npu-top 柱状图](docs/screenshots/chart.png)
+![npu-top 柱状图](https://raw.githubusercontent.com/LIRUILONGS/npu-top/main/docs/screenshots/chart.png)
 
 `--no-color` 适合日志、截图和邮件：
 
-![npu-top 单色输出](docs/screenshots/nocolor.png)
+![npu-top 单色输出](https://raw.githubusercontent.com/LIRUILONGS/npu-top/main/docs/screenshots/nocolor.png)
 
 以下文本数值仅作示例（截图来自真实采样）：
 
@@ -191,7 +191,7 @@ npu-top -e deepseek=http://127.0.0.1:8900
 - `npu` 设为 `false` 可以关闭硬件采集。
 - `npu_smi` 可以指向非标准路径的 `npu-smi`。
 
-示例文件见 [`examples/npu-top.json`](examples/npu-top.json)。
+示例文件见 [`examples/npu-top.json`](https://github.com/LIRUILONGS/npu-top/blob/main/examples/npu-top.json)。
 
 ## JSON 输出
 
@@ -272,6 +272,8 @@ python3 -m unittest discover -s tests -v
 测试覆盖 Prometheus 解析、区间速率、`npu-smi` 解析、配置合并、HTTP 拉取和 JSON
 序列化，全部使用标准库。
 
+发布到 PyPI 的流程见 [RELEASING.md](https://github.com/LIRUILONGS/npu-top/blob/main/RELEASING.md)。
+
 ## 许可证
 
-MIT，见 [LICENSE](LICENSE)。
+MIT，见 [LICENSE](https://github.com/LIRUILONGS/npu-top/blob/main/LICENSE)。

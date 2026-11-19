@@ -1,6 +1,6 @@
 # npu-top
 
-[简体中文](README.md) | English
+[简体中文](https://github.com/LIRUILONGS/npu-top/blob/main/README.md) | English
 
 [![ci](https://github.com/LIRUILONGS/npu-top/actions/workflows/ci.yml/badge.svg)](https://github.com/LIRUILONGS/npu-top/actions/workflows/ci.yml)
 
@@ -10,7 +10,7 @@ Tiny, zero-dependency terminal dashboard for **vLLM** and **Ascend NPU**.
 read-only sources: a vLLM Prometheus endpoint and `npu-smi info`. The result is a
 single terminal view that shows both serving quality and NPU health.
 
-![npu-top terminal overview](docs/screenshots/overview.png)
+![npu-top terminal overview](https://raw.githubusercontent.com/LIRUILONGS/npu-top/main/docs/screenshots/overview.png)
 
 *Live sample: DeepSeek V4 Flash on 8 × Ascend 910B2.*
 
@@ -128,11 +128,11 @@ Keys pressed in the TUI: `q` quits; `Ctrl-C` also stops.
 
 `--chart` adds a grouped bar chart for all eight NPUs below the serving metrics:
 
-![npu-top grouped chart](docs/screenshots/chart.png)
+![npu-top grouped chart](https://raw.githubusercontent.com/LIRUILONGS/npu-top/main/docs/screenshots/chart.png)
 
 `--no-color` is useful for logs, screenshots, and email:
 
-![npu-top monochrome output](docs/screenshots/nocolor.png)
+![npu-top monochrome output](https://raw.githubusercontent.com/LIRUILONGS/npu-top/main/docs/screenshots/nocolor.png)
 
 Example output (text values are illustrative; the screenshots above are real
 samples):
@@ -198,7 +198,7 @@ Notes:
 - `npu` can be set to `false` to disable hardware collection.
 - `npu_smi` can point to a non-standard `npu-smi` binary.
 
-An example is in [`examples/npu-top.json`](examples/npu-top.json).
+An example is in [`examples/npu-top.json`](https://github.com/LIRUILONGS/npu-top/blob/main/examples/npu-top.json).
 
 ## JSON output
 
@@ -283,6 +283,8 @@ python3 -m unittest discover -s tests -v
 The test suite covers Prometheus parsing, interval rates, `npu-smi` parsing, config
 merging, HTTP fetching and JSON serialization. It uses only the standard library.
 
+See [RELEASING.md](https://github.com/LIRUILONGS/npu-top/blob/main/RELEASING.md) for the PyPI release process.
+
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](https://github.com/LIRUILONGS/npu-top/blob/main/LICENSE).
