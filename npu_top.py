@@ -953,7 +953,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--chart", action="store_true", help="show the 8-NPU grouped bar chart")
     parser.add_argument("--no-npu", action="store_true", help="skip npu-smi")
     parser.add_argument("--npu-smi", metavar="PATH", help="path to npu-smi (default: search PATH)")
-    parser.add_argument("--no-color", action="store_true", help="disable ANSI colors")
+    color_group = parser.add_mutually_exclusive_group()
+    color_group.add_argument("--color", action="store_true", help="force ANSI colors (useful for screenshots)")
+    color_group.add_argument("--no-color", action="store_true", help="disable ANSI colors")
     parser.add_argument("--lang", choices=("auto", "en", "zh"), default="auto", help="UI language (default: auto)")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return parser
@@ -1137,7 +1139,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     config = load_config(args.config, bool(args.config))
     lang = resolve_lang(args.lang)
     t = Translator(lang)
-    theme = Theme(enabled=not args.no_color and supports_color())
+    theme = Theme(enabled=args.color or (not args.no_color and supports_color()))
 
     try:
         endpoints = build_endpoints(args, config)

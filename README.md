@@ -10,6 +10,10 @@
 vLLM 的 Prometheus 指标接口，以及昇腾的 `npu-smi info`。一个终端界面同时展示
 推理服务质量与 NPU 硬件状态。
 
+![npu-top 终端界面](docs/screenshots/overview.png)
+
+*实际运行采样：DeepSeek V4 Flash + 8 × 昇腾 910B2。*
+
 > 状态：alpha。CLI 和 JSON 字段已经可用，但 1.0 之前可能调整。
 
 ## 为什么还需要一个监控工具
@@ -39,7 +43,7 @@ vLLM 的 Prometheus 指标接口，以及昇腾的 `npu-smi info`。一个终端
 - 基于 histogram 的 TTFT、TPOT、E2E、排队、prefill、decode 和 ITL 平均延迟。
 - 可选趋势曲线，以及可选的 8 卡分组柱状图。
 - `--once` 适合日志，`--json` 适合脚本和看板。
-- 中英文界面、自动颜色检测、支持 `NO_COLOR`。
+- 中英文界面、自动颜色检测、支持 `NO_COLOR`；`--color` 可强制颜色，适合截图。
 - API Key 从环境变量读取，不会打印到终端。
 - wheel 约 18 KB，源码就是一个 `npu_top.py`。
 
@@ -112,7 +116,15 @@ TUI 中按 `q` 退出，`Ctrl-C` 也可以停止。
 
 ## 示例输出
 
-以下数值仅作示例：
+`--chart` 会在服务指标下方增加 8 卡分组柱状图：
+
+![npu-top 柱状图](docs/screenshots/chart.png)
+
+`--no-color` 适合日志、截图和邮件：
+
+![npu-top 单色输出](docs/screenshots/nocolor.png)
+
+以下文本数值仅作示例（截图来自真实采样）：
 
 ```text
 npu-top 0.1.0  vLLM + 昇腾 NPU  2026-11-19 10:44:25

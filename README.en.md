@@ -10,6 +10,10 @@ Tiny, zero-dependency terminal dashboard for **vLLM** and **Ascend NPU**.
 read-only sources: a vLLM Prometheus endpoint and `npu-smi info`. The result is a
 single terminal view that shows both serving quality and NPU health.
 
+![npu-top terminal overview](docs/screenshots/overview.png)
+
+*Live sample: DeepSeek V4 Flash on 8 × Ascend 910B2.*
+
 > Status: alpha. The CLI and JSON schema are usable, but may change before 1.0.
 
 ## Why another dashboard?
@@ -46,7 +50,7 @@ serving-metric discipline and adds the Ascend hardware view.
 - Histogram-based TTFT, TPOT, E2E, queue, prefill, decode and ITL averages.
 - Optional sparklines and an optional 8-NPU grouped bar chart.
 - `--once` for logs, `--json` for scripts and dashboards.
-- English/Chinese UI, automatic color detection, `NO_COLOR` support.
+- English/Chinese UI, automatic color detection, `NO_COLOR` support; `--color` forces color for screenshots.
 - API keys from environment variables; keys are never printed.
 
 ## Install
@@ -116,7 +120,16 @@ the live TUI.
 
 Keys pressed in the TUI: `q` quits; `Ctrl-C` also stops.
 
-Example output (values are illustrative):
+`--chart` adds a grouped bar chart for all eight NPUs below the serving metrics:
+
+![npu-top grouped chart](docs/screenshots/chart.png)
+
+`--no-color` is useful for logs, screenshots, and email:
+
+![npu-top monochrome output](docs/screenshots/nocolor.png)
+
+Example output (text values are illustrative; the screenshots above are real
+samples):
 
 ```text
 npu-top 0.1.0  vLLM + Ascend NPU  2026-11-19 10:44:25
